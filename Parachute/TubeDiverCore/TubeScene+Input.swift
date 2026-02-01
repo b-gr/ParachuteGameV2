@@ -77,24 +77,10 @@ extension TubeScene {
     #else
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         lastInputEvent = "touchesBegan"
-        if runState == .ready {
-            startRun()
-            return
-        }
-        if runState == .showingScores {
-            resetRun()
-            return
-        }
-        if runState != .playing { return }
-        inputMode = .pointer
-        targetX = touches.first.map { $0.location(in: self).x }
     }
 
     public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         lastInputEvent = "touchesMoved"
-        if runState != .playing { return }
-        inputMode = .pointer
-        targetX = touches.first.map { $0.location(in: self).x }
     }
     #endif
 }

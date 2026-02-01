@@ -50,7 +50,7 @@ extension TubeScene {
         parachuteArt.removeFromParent()
 
         rocketArt.addChild(makeRocketNode())
-        rocketArt.setScale(1.35)
+        rocketArt.setScale(2.05)
         rocketArt.position = CGPoint(x: 0, y: -10)
         rocketArt.zPosition = -2
         rocketArt.isHidden = true
@@ -71,7 +71,7 @@ extension TubeScene {
         rocketFuelBack.removeFromParent()
         rocketFuelFill.removeFromParent()
 
-        rocketFuelBar.position = CGPoint(x: 0, y: 56)
+        rocketFuelBar.position = CGPoint(x: 0, y: 82)
         rocketFuelBar.zPosition = 3
 
         rocketFuelBack.path = CGPath(rect: CGRect(x: -32, y: -3, width: 64, height: 6), transform: nil)
@@ -405,12 +405,16 @@ extension TubeScene {
             return
         }
 
-        if runState == .playing && slowRemaining <= 0 {
-            startTumblingIfNeeded()
+        if runState == .playing {
+            if slowRemaining > 0 || boostRemaining > 0 {
+                ensureUpright()
+            } else {
+                startTumblingIfNeeded()
+            }
             return
         }
 
-        if slowRemaining > 0 {
+        if slowRemaining > 0 || boostRemaining > 0 {
             ensureUpright()
         } else {
             stopTumbling(freeze: true)
@@ -618,6 +622,11 @@ extension TubeScene {
             let axis: CGFloat = (rightKeyDown ? 1 : 0) + (leftKeyDown ? -1 : 0)
             let maxSpeed: CGFloat = 520
             player.physicsBody?.velocity = CGVector(dx: axis * maxSpeed, dy: 0)
+        case .tilt:
+            let deadzone: CGFloat = 0.08
+            let axis = abs(tiltAxis) < deadzone ? 0 : tiltAxis
+            let maxSpeed: CGFloat = 520
+            player.physicsBody?.velocity = CGVector(dx: axis * maxSpeed, dy: 0)
         }
     }
 
@@ -626,7 +635,7 @@ extension TubeScene {
         switch inputMode {
         case .pointer:
             allowOffscreen = config.playerRadius * 0.5
-        case .keyboard:
+        case .keyboard, .tilt:
             allowOffscreen = config.playerRadius
         }
 
@@ -640,7 +649,7 @@ extension TubeScene {
             player.position.x = frame.minX - config.playerRadius
         }
         #else
-        if inputMode == .keyboard {
+        if inputMode == .keyboard || inputMode == .tilt {
             if player.position.x < frame.minX - config.playerRadius {
                 player.position.x = frame.maxX + config.playerRadius
             } else if player.position.x > frame.maxX + config.playerRadius {

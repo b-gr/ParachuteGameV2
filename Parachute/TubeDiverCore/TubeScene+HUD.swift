@@ -4,7 +4,7 @@ extension TubeScene {
     func setupHUD() {
         scoreLabel.fontSize = 20
         scoreLabel.fontColor = SKColor(white: 0.92, alpha: 1)
-        scoreLabel.horizontalAlignmentMode = .left
+        scoreLabel.horizontalAlignmentMode = .center
         scoreLabel.verticalAlignmentMode = .top
         scoreLabel.zPosition = 50
         hud.addChild(scoreLabel)
@@ -43,19 +43,16 @@ extension TubeScene {
     func layoutHUD() {
         let halfW = frame.width * 0.5
         let halfH = frame.height * 0.5
-#if os(iOS)
+#if os(iOS) || os(macOS)
         let yOffset = frame.height * 0.07
-        scoreLabel.position = CGPoint(x: -halfW + 18, y: halfH - 14 - yOffset)
+#else
+        let yOffset: CGFloat = 0
+#endif
+        scoreLabel.position = CGPoint(x: 0, y: halfH - 14 - yOffset)
         statusLabel.position = CGPoint(x: 0, y: -yOffset)
         let barHeight = scoreLabel.fontSize + 12
         let totalBarHeight = barHeight + yOffset
         hudBar.path = CGPath(rect: CGRect(x: -halfW, y: halfH - totalBarHeight, width: frame.width, height: totalBarHeight), transform: nil)
-#else
-        scoreLabel.position = CGPoint(x: -halfW + 18, y: halfH - 14)
-        statusLabel.position = .zero
-        let barHeight = scoreLabel.fontSize + 12
-        hudBar.path = CGPath(rect: CGRect(x: -halfW, y: halfH - barHeight, width: frame.width, height: barHeight), transform: nil)
-#endif
         hudBar.position = .zero
         scorePanel.position = .zero
     }

@@ -35,9 +35,15 @@ public final class TubeScene: SKScene {
         case coin
     }
 
+    public enum ControlMode {
+        case buttons
+        case tilt
+    }
+
     enum InputMode {
         case pointer
         case keyboard
+        case tilt
     }
 
     enum RunState {
@@ -95,8 +101,10 @@ public final class TubeScene: SKScene {
     var coinsThisRun: Int = 0
 
     var inputMode: InputMode = .pointer
+    public private(set) var controlMode: ControlMode = .buttons
     var leftKeyDown = false
     var rightKeyDown = false
+    var tiltAxis: CGFloat = 0
 
     let shieldBubble = SKShapeNode()
     let shieldRim = SKShapeNode()
@@ -197,13 +205,20 @@ public final class TubeScene: SKScene {
 
         statusLabel.numberOfLines = 0
         statusLabel.alpha = 1
+#if os(iOS)
+        statusLabel.text = "Tap Start to begin"
+#else
         statusLabel.text = "Click / Press Space to Start"
+#endif
         scorePanel.isHidden = true
         hudBar.isHidden = false
         hudBar.alpha = 1
         scoreLabel.alpha = 1
         nameBuffer = ""
         nextMilestoneSeconds = 10
+        leftKeyDown = false
+        rightKeyDown = false
+        tiltAxis = 0
 
         world.removeAllChildren()
         world.removeAllActions()
@@ -285,5 +300,42 @@ public final class TubeScene: SKScene {
         lastUpdateTime = nil
 
         breakParachute()
+    }
+
+    public func setControlMode(_ mode: ControlMode) {
+        controlMode = mode
+        switch mode {
+        case .buttons:
+            inputMode = .keyboard
+            leftKeyDown = false
+            rightKeyDown = false
+            tiltAxis = 0
+        case .tilt:
+            inputMode = .tilt
+            leftKeyDown = false
+            rightKeyDown = false
+        }
+    }
+
+    public func setButtonInput(left: Bool, right: Bool) {
+        inputMode = .keyboard
+        leftKeyDown = left
+        rightKeyDown = right
+    }
+
+    public func updateTiltAxis(_ axis: CGFloat) {
+        inputMode = .tilt
+        tiltAxis = max(-1, min(1, axis))
+    }
+
+    public func handlePrimaryAction() {
+        switch runState {
+        case .ready:
+            startRun()
+        case .showingScores:
+            resetRun()
+        default:
+            break
+        }
     }
 }

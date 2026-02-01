@@ -9,6 +9,18 @@ extension TubeScene {
         runState == .enteringName
     }
 
+    public var isReady: Bool {
+        runState == .ready
+    }
+
+    public var isShowingScores: Bool {
+        runState == .showingScores
+    }
+
+    public var isPlaying: Bool {
+        runState == .playing
+    }
+
     public func currentNameBuffer() -> String {
         nameBuffer
     }
@@ -141,7 +153,11 @@ extension TubeScene {
         for (i, e) in highScores.enumerated() {
             lines.append("\(i + 1). \(e.name)  \(e.score)")
         }
+#if os(iOS)
+        lines.append("\nTap Start to restart")
+#else
         lines.append("\nClick (or press Return) to restart")
+#endif
         return lines.joined(separator: "\n")
     }
 

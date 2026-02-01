@@ -65,6 +65,7 @@ extension TubeScene {
 
     func startDeathCinematic(contact: SKPhysicsContact, bird: SKNode) {
         runState = .deathCinematic
+        stopAllObstacles()
         freezeArmPose()
         freezeLegPose()
         stopTumbling(freeze: true)
@@ -181,6 +182,14 @@ extension TubeScene {
             .wait(forDuration: zoomDuration + ringDelay + holdDuration + resumeDuration + zoomOutDuration),
             impact
         ]))
+    }
+
+    func stopAllObstacles() {
+        world.enumerateChildNodes(withName: "obstacle") { node, _ in
+            node.removeAllActions()
+            node.physicsBody?.velocity = .zero
+            node.physicsBody?.isDynamic = false
+        }
     }
 
     func finishDeathSequence() {
