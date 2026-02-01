@@ -5,62 +5,149 @@
 //  Created by Ben Gresham on 01/02/2026.
 //
 
+import SpriteKit
 import SwiftUI
-import SwiftData
+
+#if os(macOS)
+import AppKit
+#endif
+
+private let gameplaySize = CGSize(width: 390, height: 844)
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var scene: TubeScene
+#if os(iOS)
+    @State private var nameEntry = ""
+#endif
+
+    init() {
+        let scene = TubeScene(size: gameplaySize)
+        scene.scaleMode = .aspectFit
+        _scene = State(initialValue: scene)
+    }
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
+        TimelineView(.animation) { _ in
+            ZStack {
+                gameView
+                    .ignoresSafeArea()
 #if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
+                if scene.isEnteringName {
+                    NameEntryOverlay(scene: scene, nameEntry: $nameEntry)
                 }
 #endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
             }
-        } detail: {
-            Text("Select an item")
+        }
+        .onAppear {
+#if os(iOS)
+            nameEntry = scene.currentNameBuffer()
+#endif
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
+    @ViewBuilder
+    private var gameView: some View {
+#if os(macOS)
+        MacGameView(scene: scene)
+            .frame(width: gameplaySize.width, height: gameplaySize.height)
+#else
+        SpriteView(scene: scene, options: [.ignoresSiblingOrder])
+#endif
     }
 }
 
+#if os(iOS)
+private struct NameEntryOverlay: View {
+    let scene: TubeScene
+    @Binding var nameEntry: String
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Enter your name")
+                .font(.headline)
+                .foregroundStyle(.white)
+            TextField("Player", text: $nameEntry)
+                .textInputAutocapitalization(.words)
+                .autocorrectionDisabled()
+                .textFieldStyle(.roundedBorder)
+                .onChange(of: nameEntry) { newValue in
+                    scene.updateNameBuffer(newValue)
+                    let filtered = scene.currentNameBuffer()
+                    if filtered != newValue {
+                        nameEntry = filtered
+                    }
+                }
+                .onSubmit {
+                    scene.submitNameEntry()
+                }
+                .submitLabel(.done)
+            Button("Save Score") {
+                scene.submitNameEntry()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding(24)
+        .background(.black.opacity(0.75), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding()
+        .onAppear {
+            nameEntry = scene.currentNameBuffer()
+        }
+    }
+}
+#endif
+
+#if os(macOS)
+private final class GameView: SKView {
+    override var acceptsFirstResponder: Bool { true }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        window?.makeFirstResponder(self)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        scene?.mouseDown(with: event)
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        scene?.mouseDragged(with: event)
+    }
+
+    override func keyDown(with event: NSEvent) {
+        scene?.keyDown(with: event)
+    }
+
+    override func keyUp(with event: NSEvent) {
+        scene?.keyUp(with: event)
+    }
+}
+
+private struct MacGameView: NSViewRepresentable {
+    let scene: TubeScene
+
+    func makeNSView(context: Context) -> GameView {
+        let view = GameView()
+        view.ignoresSiblingOrder = true
+        view.preferredFramesPerSecond = 60
+#if DEBUG
+        view.showsFPS = true
+        view.showsNodeCount = true
+#endif
+        view.presentScene(scene)
+        return view
+    }
+
+    func updateNSView(_ nsView: GameView, context: Context) {
+        if nsView.scene !== scene {
+            nsView.presentScene(scene)
+        }
+        if nsView.window?.firstResponder !== nsView {
+            nsView.window?.makeFirstResponder(nsView)
+        }
+    }
+}
+#endif
+
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }

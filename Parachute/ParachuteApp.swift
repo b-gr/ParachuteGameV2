@@ -6,27 +6,18 @@
 //
 
 import SwiftUI
-import SwiftData
+
+private let gameplaySize = CGSize(width: 390, height: 844)
 
 @main
 struct ParachuteApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(sharedModelContainer)
+#if os(macOS)
+        .windowResizability(.contentSize)
+        .defaultSize(width: gameplaySize.width, height: gameplaySize.height)
+#endif
     }
 }
