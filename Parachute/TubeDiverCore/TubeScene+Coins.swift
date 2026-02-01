@@ -2,6 +2,7 @@ import Foundation
 import SpriteKit
 
 extension TubeScene {
+    /// Spawns a rotating coin pickup.
     func spawnCoin() {
         let margin: CGFloat = 22
         let minX = frame.minX + margin

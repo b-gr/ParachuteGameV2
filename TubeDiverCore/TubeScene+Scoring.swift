@@ -2,14 +2,17 @@ import Foundation
 import SpriteKit
 
 extension TubeScene {
+    /// Indicates whether the scene is currently collecting a name.
     public var isEnteringName: Bool {
         runState == .enteringName
     }
 
+    /// Returns the current name-entry buffer.
     public func currentNameBuffer() -> String {
         nameBuffer
     }
 
+    /// Updates the name buffer with allowed characters only.
     public func updateNameBuffer(_ raw: String) {
         guard runState == .enteringName else { return }
         let filtered = raw.unicodeScalars.compactMap { scalar -> Character? in
@@ -24,11 +27,13 @@ extension TubeScene {
         refreshNamePrompt()
     }
 
+    /// Submits the current name entry, if applicable.
     public func submitNameEntry() {
         guard runState == .enteringName else { return }
         saveCurrentScore()
     }
 
+    /// Spawns milestone banners based on elapsed time.
     func updateMilestones() {
         let s = Int(elapsed)
         while s >= nextMilestoneSeconds {
@@ -37,6 +42,7 @@ extension TubeScene {
         }
     }
 
+    /// Computes the next milestone threshold after the given value.
     func nextMilestone(after value: Int) -> Int {
         switch value {
         case 10: return 20
@@ -49,6 +55,7 @@ extension TubeScene {
         }
     }
 
+    /// Transitions into the name-entry flow after a run ends.
     func presentNameEntry() {
         runState = .enteringName
         world.isPaused = true
@@ -65,6 +72,7 @@ extension TubeScene {
     }
 
     #if os(macOS)
+    /// Handles key presses while entering a name on macOS.
     func handleNameEntryKeyDown(_ event: NSEvent) {
         switch event.keyCode {
         case 51:
@@ -90,6 +98,7 @@ extension TubeScene {
     }
     #endif
 
+    /// Refreshes the on-screen prompt while entering a name.
     func refreshNamePrompt() {
         guard runState == .enteringName else { return }
         let seconds = Int(elapsed)
@@ -100,6 +109,7 @@ extension TubeScene {
         statusLabel.text = "Game Over\nTime: \(seconds)s  Coins: \(coinsThisRun)  \nScore: \(score)\n\nEnter your name and press Return:\n\(nameBuffer.isEmpty ? "_" : nameBuffer)"
     }
 
+    /// Builds a score entry from the current run metrics.
     func currentScoreEntry() -> ScoreEntry {
         let seconds = Int(elapsed)
         let multiplier = 1 + coinsThisRun
@@ -116,6 +126,7 @@ extension TubeScene {
         )
     }
 
+    /// Saves the current score and shows the leaderboard.
     func saveCurrentScore() {
         let entry = currentScoreEntry()
         highScores.append(entry)
@@ -131,6 +142,7 @@ extension TubeScene {
         statusLabel.text = leaderboardText(current: entry)
     }
 
+    /// Renders the leaderboard text for the HUD.
     func leaderboardText(current: ScoreEntry) -> String {
         var lines: [String] = []
         lines.append("Your score has been saved!")
@@ -142,6 +154,7 @@ extension TubeScene {
         return lines.joined(separator: "\n")
     }
 
+    /// Loads high scores from user defaults.
     func loadHighScores() {
         let defaults = UserDefaults.standard
         guard let data = defaults.data(forKey: "TubeDiverHighScores") else { return }
@@ -152,6 +165,7 @@ extension TubeScene {
         }
     }
 
+    /// Persists high scores to user defaults.
     func persistHighScores() {
         do {
             let data = try JSONEncoder().encode(highScores)

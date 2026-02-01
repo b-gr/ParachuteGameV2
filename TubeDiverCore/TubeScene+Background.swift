@@ -2,6 +2,7 @@ import Foundation
 import SpriteKit
 
 extension TubeScene {
+    /// Sets up background layers and initial clouds.
     func setupBackground() {
         childNode(withName: "tube")?.removeFromParent()
         physicsBody = nil
@@ -14,6 +15,7 @@ extension TubeScene {
         }
     }
 
+    /// Advances background animation each frame.
     func driveBackground(dt: TimeInterval) {
         let cloudSpeed = lerp(14, 26, intensity)
         backgroundLayer.enumerateChildNodes(withName: "cloud") { node, _ in
@@ -24,6 +26,7 @@ extension TubeScene {
         }
     }
 
+    /// Spawns new clouds based on the timer.
     func spawnClouds(dt: TimeInterval) {
         cloudSpawnTimer += dt
         while cloudSpawnTimer >= config.cloudSpawnInterval {
@@ -32,6 +35,7 @@ extension TubeScene {
         }
     }
 
+    /// Removes clouds that scroll offscreen.
     func cleanupClouds() {
         let cutoffY = frame.maxY + 220
         backgroundLayer.children.forEach { node in
@@ -42,6 +46,7 @@ extension TubeScene {
         }
     }
 
+    /// Creates a single cloud node at a specified Y position.
     func spawnCloud(y: CGFloat) {
         let margin: CGFloat = 40
         let x = CGFloat.random(in: (frame.minX + margin)...(frame.maxX - margin))
@@ -91,6 +96,7 @@ extension TubeScene {
         backgroundLayer.addChild(cloud)
     }
 
+    /// Spawns a celebratory plane banner for milestone times.
     func spawnMilestonePlane(seconds: Int) {
         let goRight = Bool.random()
         let y = CGFloat.random(in: (frame.minY + frame.height * 0.25)...(frame.minY + frame.height * 0.55))

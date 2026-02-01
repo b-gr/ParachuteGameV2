@@ -1,6 +1,7 @@
 import SpriteKit
 
 extension TubeScene: @preconcurrency SKPhysicsContactDelegate {
+    /// Handles contact events between physics bodies.
     public func didBegin(_ contact: SKPhysicsContact) {
         let a = contact.bodyA
         let b = contact.bodyB
@@ -36,6 +37,7 @@ extension TubeScene: @preconcurrency SKPhysicsContactDelegate {
 }
 
 extension TubeScene {
+    /// Resolves a player hit against an obstacle.
     func handleHit(contact: SKPhysicsContact, bird: SKNode) {
         guard runState == .playing else { return }
 
@@ -47,6 +49,7 @@ extension TubeScene {
         startDeathCinematic(contact: contact, bird: bird)
     }
 
+    /// Flashes the player to indicate shield absorption.
     func flashPlayer() {
         let a = SKAction.sequence([
             .fadeAlpha(to: 0.25, duration: 0.06),
@@ -63,6 +66,7 @@ extension TubeScene {
         }
     }
 
+    /// Starts the slow-motion death cinematic sequence.
     func startDeathCinematic(contact: SKPhysicsContact, bird: SKNode) {
         runState = .deathCinematic
         stopAllObstacles()
@@ -184,6 +188,7 @@ extension TubeScene {
         ]))
     }
 
+    /// Freezes all obstacle motion during the death cinematic.
     func stopAllObstacles() {
         world.enumerateChildNodes(withName: "obstacle") { node, _ in
             node.removeAllActions()
@@ -192,6 +197,7 @@ extension TubeScene {
         }
     }
 
+    /// Restores gameplay after the cinematic finishes.
     func finishDeathSequence() {
         world.speed = 1
         backgroundLayer.speed = 1
@@ -204,6 +210,7 @@ extension TubeScene {
         presentNameEntry()
     }
 
+    /// Shows a pulsing impact ring at the collision point.
     func showImpactRing(at position: CGPoint) {
         let ring = SKShapeNode(circleOfRadius: 20)
         ring.strokeColor = SKColor(red: 0.95, green: 0.20, blue: 0.18, alpha: 0.95)

@@ -1,6 +1,7 @@
 import SpriteKit
 
 extension TubeScene {
+    /// Creates the player node, physics body, and visual components.
     func setupPlayer() {
         player.removeAllActions()
         player.removeFromParent()
@@ -33,6 +34,7 @@ extension TubeScene {
         updatePlayerModifierArt()
     }
 
+    /// Positions the player at the starting location.
     func layoutPlayer() {
 #if os(iOS)
         let yOffset = frame.height * 0.07
@@ -43,6 +45,7 @@ extension TubeScene {
         targetX = player.position.x
     }
 
+    /// Builds and attaches modifier art (rocket/parachute).
     func setupModifierArt() {
         rocketArt.removeAllActions()
         parachuteArt.removeAllActions()
@@ -63,6 +66,7 @@ extension TubeScene {
         playerArt.addChild(parachuteArt)
     }
 
+    /// Creates the rocket fuel bar UI element.
     func setupRocketFuelBar() {
         rocketFuelBar.removeAllActions()
         rocketFuelBar.removeFromParent()
@@ -89,6 +93,7 @@ extension TubeScene {
         playerArt.addChild(rocketFuelBar)
     }
 
+    /// Rebuilds the player's shape-based sprite art.
     func rebuildPlayerArt() {
         playerArt.removeAllChildren()
 
@@ -203,6 +208,7 @@ extension TubeScene {
         playerArt.addChild(goggle)
     }
 
+    /// Creates the shield bubble and rim visuals.
     func setupShieldVisuals() {
         shieldBubble.removeAllActions()
         shieldRim.removeAllActions()
@@ -228,6 +234,7 @@ extension TubeScene {
         player.addChild(shieldRim)
     }
 
+    /// Builds a parachute node used for slow-mode visuals.
     func makeParachuteNode() -> SKNode {
         let node = SKNode()
         let outline = SKColor(white: 0.10, alpha: 0.95)
@@ -266,6 +273,7 @@ extension TubeScene {
         return node
     }
 
+    /// Builds a rocket node used for boost visuals.
     func makeRocketNode() -> SKNode {
         let node = SKNode()
         let outline = SKColor(white: 0.10, alpha: 0.95)
@@ -331,6 +339,7 @@ extension TubeScene {
         return node
     }
 
+    /// Advances powerup timers and updates related state.
     func updatePowerupTimers(dt: TimeInterval) {
         if boostRemaining > 0 {
             boostRemaining = max(0, boostRemaining - dt)
@@ -360,6 +369,7 @@ extension TubeScene {
         updateShieldCollisionMask()
     }
 
+    /// Updates collision masks based on shield state.
     func updateShieldCollisionMask() {
         guard let body = player.physicsBody else { return }
         if shieldRemaining > 0 {
@@ -382,6 +392,7 @@ extension TubeScene {
         }
     }
 
+    /// Refreshes rocket/parachute visibility and animation state.
     func updatePlayerModifierArt() {
         rocketArt.isHidden = !(boostRemaining > 0)
         parachuteArt.isHidden = !((slowRemaining > 0) || (runState == .ready && startParachuteVisible))
@@ -391,14 +402,17 @@ extension TubeScene {
         updateTumbleState()
     }
 
+    /// Returns base arm angles for the neutral pose.
     func armBaseAngles() -> (left: CGFloat, right: CGFloat) {
         (1.92 - .pi, 1.22)
     }
 
+    /// Returns base leg angles for the neutral pose.
     func legBaseAngles() -> (left: CGFloat, right: CGFloat) {
         (0.10, -0.10)
     }
 
+    /// Chooses between tumbling and upright pose based on state.
     func updateTumbleState() {
         if runState == .deathCinematic {
             stopTumbling(freeze: true)
@@ -421,12 +435,14 @@ extension TubeScene {
         }
     }
 
+    /// Starts the tumbling loop if not already running.
     func startTumblingIfNeeded() {
         guard playerArt.action(forKey: "tumble") == nil else { return }
         playerArt.removeAction(forKey: "upright")
         scheduleNextTumble()
     }
 
+    /// Schedules the next random tumble rotation.
     func scheduleNextTumble() {
         guard runState == .playing && slowRemaining <= 0 else { return }
         let duration = TimeInterval(Double.random(in: 0.45...0.9))
@@ -439,6 +455,7 @@ extension TubeScene {
         playerArt.run(.sequence([rotate, next]), withKey: "tumble")
     }
 
+    /// Smoothly rotates the player back upright.
     func ensureUpright() {
         guard playerArt.action(forKey: "upright") == nil else { return }
         playerArt.removeAction(forKey: "tumble")
@@ -447,6 +464,7 @@ extension TubeScene {
         playerArt.run(upright, withKey: "upright")
     }
 
+    /// Stops tumbling and optionally freezes upright motion.
     func stopTumbling(freeze: Bool) {
         playerArt.removeAction(forKey: "tumble")
         if freeze {
@@ -454,6 +472,7 @@ extension TubeScene {
         }
     }
 
+    /// Updates arm flail animations based on run state.
     func updateArmFlail() {
         guard let leftArm = playerArt.childNode(withName: "leftArm"),
               let rightArm = playerArt.childNode(withName: "rightArm") else { return }
@@ -496,6 +515,7 @@ extension TubeScene {
         }
     }
 
+    /// Updates leg flail animations based on run state.
     func updateLegFlail() {
         guard let leftLeg = playerArt.childNode(withName: "leftLeg"),
               let rightLeg = playerArt.childNode(withName: "rightLeg") else { return }
@@ -538,6 +558,7 @@ extension TubeScene {
         }
     }
 
+    /// Stops arm flailing and optionally eases to neutral.
     func stopArmFlail(slowly: Bool) {
         guard let leftArm = playerArt.childNode(withName: "leftArm"),
               let rightArm = playerArt.childNode(withName: "rightArm") else { return }
@@ -559,6 +580,7 @@ extension TubeScene {
         }
     }
 
+    /// Immediately freezes arms in their current pose.
     func freezeArmPose() {
         guard let leftArm = playerArt.childNode(withName: "leftArm"),
               let rightArm = playerArt.childNode(withName: "rightArm") else { return }
@@ -567,6 +589,7 @@ extension TubeScene {
         rightArm.removeAction(forKey: "flail")
     }
 
+    /// Immediately freezes legs in their current pose.
     func freezeLegPose() {
         guard let leftLeg = playerArt.childNode(withName: "leftLeg"),
               let rightLeg = playerArt.childNode(withName: "rightLeg") else { return }
@@ -575,6 +598,7 @@ extension TubeScene {
         rightLeg.removeAction(forKey: "flail")
     }
 
+    /// Ensures the player node exists and is visible.
     func ensurePlayerVisible() {
         if player.parent == nil || playerArt.children.isEmpty {
             setupPlayer()
@@ -583,6 +607,7 @@ extension TubeScene {
         player.alpha = 1
     }
 
+    /// Updates the rocket fuel bar fill and flash state.
     func updateRocketFuelBar() {
         guard boostRemaining > 0 else {
             rocketFuelBar.alpha = 0
@@ -610,6 +635,7 @@ extension TubeScene {
         }
     }
 
+    /// Applies movement input to the player physics body.
     func drivePlayer(dt: TimeInterval) {
         switch inputMode {
         case .pointer:
@@ -630,6 +656,7 @@ extension TubeScene {
         }
     }
 
+    /// Enforces horizontal bounds and optional wraparound.
     func applyHorizontalBounds() {
         let allowOffscreen: CGFloat
         switch inputMode {
@@ -662,6 +689,7 @@ extension TubeScene {
         #endif
     }
 
+    /// Breaks the parachute and spawns a drifting canopy fragment.
     func breakParachute(force: Bool = false) {
         if !force {
             guard startParachuteVisible else { return }
@@ -720,16 +748,19 @@ extension TubeScene {
         ]))
     }
 
+    /// Handles activation of the slow powerup.
     func handleSlowActivated() {
         showParachutePop()
         ensureUpright()
     }
 
+    /// Handles expiration of the slow powerup.
     func handleSlowEnded() {
         breakParachute(force: true)
         startTumblingIfNeeded()
     }
 
+    /// Shows the parachute pop-in animation.
     func showParachutePop() {
         parachuteArt.isHidden = false
         parachuteArt.removeAllActions()

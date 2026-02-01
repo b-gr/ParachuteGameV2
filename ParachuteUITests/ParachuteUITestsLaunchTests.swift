@@ -7,16 +7,20 @@
 
 import XCTest
 
+/// Launch-snapshot UI tests for the app.
 final class ParachuteUITestsLaunchTests: XCTestCase {
 
+    /// Ensures launch tests run for each UI configuration.
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
     }
 
+    /// Configures the UI test environment for launch tests.
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
+    /// Launches the app and captures a launch screenshot.
     @MainActor
     func testLaunch() throws {
         let app = XCUIApplication()

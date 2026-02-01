@@ -2,29 +2,38 @@ import Cocoa
 import SpriteKit
 import TubeDiverCore
 
+/// SKView subclass that forwards input events to the scene.
 final class GameView: SKView {
+    /// Allows the view to receive keyboard focus.
     override var acceptsFirstResponder: Bool { true }
 
+    /// Forwards mouse clicks to the scene.
     override func mouseDown(with event: NSEvent) {
         scene?.mouseDown(with: event)
     }
 
+    /// Forwards mouse drags to the scene.
     override func mouseDragged(with event: NSEvent) {
         scene?.mouseDragged(with: event)
     }
 
+    /// Forwards key-down events to the scene.
     override func keyDown(with event: NSEvent) {
         scene?.keyDown(with: event)
     }
 
+    /// Forwards key-up events to the scene.
     override func keyUp(with event: NSEvent) {
         scene?.keyUp(with: event)
     }
 }
 
+/// AppKit delegate that creates and configures the game window.
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// Main application window reference.
     private var window: NSWindow?
 
+    /// Configures the main window and presents the SpriteKit scene.
     func applicationDidFinishLaunching(_ notification: Notification) {
         let app = NSApplication.shared
         app.setActivationPolicy(.regular)
@@ -60,11 +69,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.window = window
     }
 
+    /// Exits when the last window closes.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         true
     }
 }
 
+/// Manual application startup for the AppKit target.
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate

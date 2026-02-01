@@ -2,6 +2,7 @@ import Foundation
 import SpriteKit
 
 extension TubeScene {
+    /// Spawns a bird obstacle with randomized trajectory.
     func spawnObstacle() {
         let spawnY = frame.minY - 120
         let fromLeft = Bool.random()
@@ -54,6 +55,7 @@ extension TubeScene {
         world.addChild(bird)
     }
 
+    /// Builds a stylized bird node with flapping animation.
     func makeBirdNode() -> SKNode {
         let node = SKNode()
         let outline = SKColor(white: 0.06, alpha: 0.55)
@@ -139,6 +141,7 @@ extension TubeScene {
         tail.lineWidth = 2
         tail.alpha = 0.95
 
+        /// Builds a wing node for the specified side.
         func wing(isLeft: Bool) -> SKNode {
             let pivot = SKNode()
             pivot.position = CGPoint(x: 0, y: 5)

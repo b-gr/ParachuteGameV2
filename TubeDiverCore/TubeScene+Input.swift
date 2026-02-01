@@ -2,6 +2,7 @@ import SpriteKit
 
 extension TubeScene {
     #if os(macOS)
+    /// Handles mouse clicks for starting and pointer-based input.
     public override func mouseDown(with event: NSEvent) {
         lastInputEvent = "mouseDown"
         if runState == .showingScores {
@@ -17,6 +18,7 @@ extension TubeScene {
         targetX = convertPoint(fromView: event.locationInWindow).x
     }
 
+    /// Handles mouse drags for pointer-based steering.
     public override func mouseDragged(with event: NSEvent) {
         lastInputEvent = "mouseDragged"
         if runState != .playing { return }
@@ -24,6 +26,7 @@ extension TubeScene {
         targetX = convertPoint(fromView: event.locationInWindow).x
     }
 
+    /// Handles key presses for name entry and keyboard controls.
     public override func keyDown(with event: NSEvent) {
         lastInputEvent = "keyDown:\(event.keyCode)"
         if runState == .enteringName {
@@ -56,6 +59,7 @@ extension TubeScene {
         }
     }
 
+    /// Handles key release events for keyboard controls.
     public override func keyUp(with event: NSEvent) {
         lastInputEvent = "keyUp:\(event.keyCode)"
         if runState != .playing { return }
@@ -69,6 +73,7 @@ extension TubeScene {
         }
     }
     #else
+    /// Handles touch start for pointer-based input on iOS.
     public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         lastInputEvent = "touchesBegan"
         if runState == .ready {
@@ -84,6 +89,7 @@ extension TubeScene {
         targetX = touches.first.map { $0.location(in: self).x }
     }
 
+    /// Handles touch movement for pointer-based input on iOS.
     public override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         lastInputEvent = "touchesMoved"
         if runState != .playing { return }

@@ -7,8 +7,10 @@
 
 import XCTest
 
+/// UI test suite for basic application flows.
 final class ParachuteUITests: XCTestCase {
 
+    /// Sets up the UI test environment before each test.
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
 
@@ -18,10 +20,12 @@ final class ParachuteUITests: XCTestCase {
         // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
+    /// Cleans up after each test run.
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
+    /// Basic UI test placeholder that launches the app.
     @MainActor
     func testExample() throws {
         // UI tests must launch the application that they test.
@@ -31,6 +35,7 @@ final class ParachuteUITests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
 
+    /// Measures application launch performance.
     @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.

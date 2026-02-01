@@ -1,6 +1,7 @@
 import SpriteKit
 
 extension TubeScene {
+    /// Creates and configures HUD nodes.
     func setupHUD() {
         scoreLabel.fontSize = 20
         scoreLabel.fontColor = SKColor(white: 0.92, alpha: 1)
@@ -31,6 +32,7 @@ extension TubeScene {
         layoutHUD()
     }
 
+    /// Creates the full-screen death overlay used in the cinematic.
     func setupDeathOverlay() {
         deathOverlay.fillColor = SKColor(white: 0.0, alpha: 1)
         deathOverlay.strokeColor = .clear
@@ -40,6 +42,7 @@ extension TubeScene {
         cameraNode.addChild(deathOverlay)
     }
 
+    /// Positions HUD elements based on the current scene size.
     func layoutHUD() {
         let halfW = frame.width * 0.5
         let halfH = frame.height * 0.5
@@ -51,10 +54,12 @@ extension TubeScene {
         scorePanel.position = .zero
     }
 
+    /// Hook for future HUD scaling (kept for clarity).
     func updateHudScale() {
         // HUD stays in screen space; no scaling needed.
     }
 
+    /// Updates the score/coins/time display each frame.
     func updateHUD() {
         let seconds = max(0, elapsed)
         let score = Int((seconds * Double(1 + coinsThisRun)).rounded())

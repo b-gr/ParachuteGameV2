@@ -2,6 +2,7 @@ import Foundation
 import SpriteKit
 
 extension TubeScene {
+    /// Spawns a random powerup pickup.
     func spawnPickup() {
         let margin: CGFloat = 24
         let minX = frame.minX + margin
@@ -54,6 +55,7 @@ extension TubeScene {
         world.addChild(node)
     }
 
+    /// Builds the icon node for a given powerup kind.
     func makePowerupIcon(kind: PickupKind) -> SKNode {
         let outline = SKColor(white: 0.08, alpha: 0.95)
         switch kind {
@@ -95,6 +97,7 @@ extension TubeScene {
         }
     }
 
+    /// Applies the effect of a collected pickup or coin.
     func applyPickup(_ node: SKNode) {
         guard let kindString = node.userData?["kind"] as? String else { return }
         switch kindString {
@@ -120,6 +123,7 @@ extension TubeScene {
         updatePlayerModifierArt()
     }
 
+    /// Updates shield visuals based on remaining duration.
     func updateShieldVisuals(force: Bool = false) {
         let active = shieldRemaining > 0
 

@@ -7,10 +7,12 @@
 
 import SwiftUI
 
-private let gameplaySize = CGSize(width: 390, height: 844)
+private let gameplaySize = CGSize(width: 390, height: 844) // Baseline game canvas size for window defaults.
 
+/// App entry point that hosts the game view.
 @main
 struct ParachuteApp: App {
+    /// Builds the main window scene for the game.
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -1,8 +1,10 @@
 import Foundation
 import SpriteKit
 
+/// Main SpriteKit scene for the TubeDiver game.
 @MainActor
 public final class TubeScene: SKScene {
+    /// Tunable gameplay parameters.
     public struct Config {
         public var corridorInset: CGFloat = 72
         public var playerRadius: CGFloat = 18
@@ -18,9 +20,11 @@ public final class TubeScene: SKScene {
         public var boostDuration: TimeInterval = 2.2
         public var slowDuration: TimeInterval = 3.8
 
+        /// Creates a default configuration.
         public init() {}
     }
 
+    /// Physics categories for collision filtering.
     enum Category {
         static let player: UInt32 = 1 << 0
         static let obstacle: UInt32 = 1 << 2
@@ -28,6 +32,7 @@ public final class TubeScene: SKScene {
         static let coin: UInt32 = 1 << 4
     }
 
+    /// Types of pickups that can spawn.
     enum PickupKind: CaseIterable {
         case shield
         case boost
@@ -35,11 +40,13 @@ public final class TubeScene: SKScene {
         case coin
     }
 
+    /// Input modes used internally by the scene.
     enum InputMode {
         case pointer
         case keyboard
     }
 
+    /// High-level state machine for a run.
     enum RunState {
         case ready
         case playing
@@ -48,6 +55,7 @@ public final class TubeScene: SKScene {
         case showingScores
     }
 
+    /// Persisted score entry.
     struct ScoreEntry: Codable {
         var name: String
         var score: Int
@@ -56,16 +64,21 @@ public final class TubeScene: SKScene {
         var dateISO8601: String
     }
 
+    /// Current gameplay configuration.
     public var config = Config()
 
+    /// Camera node that hosts the HUD.
     let cameraNode = SKCameraNode()
     let farBackgroundLayer = SKNode()
     let backgroundLayer = SKNode()
     let world = SKNode()
     let hud = SKNode()
 
+    /// Player physics node.
     let player = SKNode()
+    /// Visual sub-tree for the player.
     let playerArt = SKNode()
+    /// Target X position used by pointer input.
     var targetX: CGFloat?
 
     let scoreLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
@@ -94,8 +107,11 @@ public final class TubeScene: SKScene {
     var speedScale: CGFloat = 1
     var coinsThisRun: Int = 0
 
+    /// Current input mode used by the scene.
     var inputMode: InputMode = .pointer
+    /// Left arrow key state.
     var leftKeyDown = false
+    /// Right arrow key state.
     var rightKeyDown = false
 
     let shieldBubble = SKShapeNode()
@@ -108,12 +124,13 @@ public final class TubeScene: SKScene {
     let rocketFuelBack = SKShapeNode()
     let rocketFuelFill = SKShapeNode()
 
-    var startParachuteVisible = true
+    var startParachuteVisible = true // Show the parachute during the ready state.
 
     var nameBuffer: String = ""
     var highScores: [ScoreEntry] = []
-    var lastInputEvent: String = "none"
+    var lastInputEvent: String = "none" // Debug trace of the last input event.
 
+    /// Initializes scene content when presented by a view.
     public override func didMove(to view: SKView) {
         backgroundColor = SKColor(red: 0.47, green: 0.73, blue: 0.96, alpha: 1)
 
@@ -144,6 +161,7 @@ public final class TubeScene: SKScene {
         resetRun()
     }
 
+    /// Rebuilds layout after the scene size changes.
     public override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
         setupBackground()
@@ -153,6 +171,7 @@ public final class TubeScene: SKScene {
         deathOverlay.path = CGPath(rect: CGRect(x: -frame.width / 2, y: -frame.height / 2, width: frame.width, height: frame.height), transform: nil)
     }
 
+    /// Resets run state and reinitializes scene content.
     func resetRun() {
         runState = .ready
         world.isPaused = true
@@ -223,6 +242,7 @@ public final class TubeScene: SKScene {
         updatePlayerModifierArt()
     }
 
+    /// Advances the game loop and dispatches state-specific updates.
     public override func update(_ currentTime: TimeInterval) {
         guard runState == .playing || runState == .ready || runState == .deathCinematic || runState == .enteringName || runState == .showingScores else { return }
 
@@ -246,6 +266,7 @@ public final class TubeScene: SKScene {
         updateHudScale()
     }
 
+    /// Performs background animation while waiting to start.
     func stepReady(dt: TimeInterval) {
         ensurePlayerVisible()
         driveBackground(dt: dt)
@@ -254,6 +275,7 @@ public final class TubeScene: SKScene {
         updatePlayerModifierArt()
     }
 
+    /// Performs the main gameplay simulation tick.
     func stepPlaying(dt: TimeInterval) {
         ensurePlayerVisible()
         elapsed += dt
@@ -272,10 +294,12 @@ public final class TubeScene: SKScene {
         cleanupClouds()
     }
 
+    /// Computes the current world scroll speed based on intensity.
     func currentScrollSpeed() -> CGFloat {
         lerp(config.baseScrollSpeed, config.maxScrollSpeed, intensity) * speedScale
     }
 
+    /// Starts a new run from the ready state.
     func startRun() {
         guard runState == .ready else { return }
 

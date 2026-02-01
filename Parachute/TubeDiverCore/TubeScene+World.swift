@@ -1,6 +1,7 @@
 import SpriteKit
 
 extension TubeScene {
+    /// Advances world objects based on current scroll speed.
     func driveWorld(dt: TimeInterval) {
         let scrollSpeed = currentScrollSpeed()
 
@@ -22,6 +23,7 @@ extension TubeScene {
         }
     }
 
+    /// Spawns obstacles, pickups, and coins based on timers.
     func spawnThings(dt: TimeInterval) {
         obstacleSpawnTimer += dt
         pickupSpawnTimer += dt
@@ -44,6 +46,7 @@ extension TubeScene {
         }
     }
 
+    /// Removes world nodes that have moved offscreen.
     func cleanupWorld() {
         let cutoffY = frame.maxY + 260
         world.children.forEach { node in

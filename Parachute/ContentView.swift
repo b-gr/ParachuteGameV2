@@ -17,24 +17,33 @@ import CoreMotion
 import AppKit
 #endif
 
-private let gameplaySize = CGSize(width: 390, height: 844)
+private let gameplaySize = CGSize(width: 390, height: 844) // Baseline game canvas size.
 
+/// Root SwiftUI view that hosts the SpriteKit scene and overlays.
 struct ContentView: View {
+    /// Persistent game scene instance shared across SwiftUI updates.
     @State private var scene: TubeScene
 #if os(iOS)
+    /// Name entry buffer for the high-score dialog.
     @State private var nameEntry = ""
+    /// Selected control scheme for iOS.
     @State private var controlMode: TubeScene.ControlMode = .buttons
+    /// Core Motion manager used for tilt controls.
     @State private var motionManager = CMMotionManager()
+    /// UI refresh tick used to reflect scene state changes in overlays.
     @State private var uiTick = 0
+    /// Timer that drives lightweight UI refreshes during gameplay.
     private let uiTimer = Timer.publish(every: 1.0 / 15.0, on: .main, in: .common).autoconnect()
 #endif
 
+    /// Creates and configures the SpriteKit scene.
     init() {
         let scene = TubeScene(size: gameplaySize)
         scene.scaleMode = .aspectFit
         _scene = State(initialValue: scene)
     }
 
+    /// Renders the game view plus any platform-specific overlays.
     var body: some View {
 #if os(iOS)
         let _ = uiTick
@@ -72,6 +81,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
+    /// Builds the platform-specific SpriteKit host view.
     private var gameView: some View {
 #if os(macOS)
         MacGameView(scene: scene)
@@ -82,6 +92,7 @@ struct ContentView: View {
     }
 
 #if os(iOS)
+    /// Applies the selected control mode and starts/stops motion updates.
     private func configureControls(for mode: TubeScene.ControlMode) {
         scene.setControlMode(mode)
         switch mode {
@@ -94,6 +105,7 @@ struct ContentView: View {
         }
     }
 
+    /// Starts device-motion updates and forwards the tilt axis to the scene.
     private func startTiltUpdates() {
         guard motionManager.isDeviceMotionAvailable else { return }
         if motionManager.isDeviceMotionActive { return }
@@ -105,6 +117,7 @@ struct ContentView: View {
         }
     }
 
+    /// Stops device-motion updates when tilt mode is disabled.
     private func stopTiltUpdates() {
         if motionManager.isDeviceMotionActive {
             motionManager.stopDeviceMotionUpdates()
@@ -114,10 +127,14 @@ struct ContentView: View {
 }
 
 #if os(iOS)
+/// Overlay for entering a high-score name on iOS.
 private struct NameEntryOverlay: View {
+    /// Target scene to update with the typed name.
     let scene: TubeScene
+    /// Two-way binding for the text field.
     @Binding var nameEntry: String
 
+    /// Builds the name-entry dialog UI.
     var body: some View {
         VStack(spacing: 16) {
             Text("Enter your name")
@@ -152,13 +169,20 @@ private struct NameEntryOverlay: View {
     }
 }
 
+/// Overlay that presents control selection and in-game buttons on iOS.
 private struct ControlOverlay: View {
+    /// Target scene to drive control input.
     let scene: TubeScene
+    /// Selected control mode (buttons or tilt).
     @Binding var controlMode: TubeScene.ControlMode
+    /// Tick used to refresh overlay state from the scene.
     let uiTick: Int
+    /// Whether the left button is currently pressed.
     @State private var leftPressed = false
+    /// Whether the right button is currently pressed.
     @State private var rightPressed = false
 
+    /// Renders the control picker, start button, and arrow controls.
     var body: some View {
         let _ = uiTick
         VStack {
@@ -210,17 +234,23 @@ private struct ControlOverlay: View {
         }
     }
 
+    /// Applies the current button state to the scene input.
     private func applyButtons() {
         guard controlMode == .buttons else { return }
         scene.setButtonInput(left: leftPressed, right: rightPressed)
     }
 }
 
+/// Press-and-hold button used for directional control.
 private struct HoldButton: View {
+    /// SF Symbol name for the button glyph.
     let systemName: String
+    /// Called whenever the pressed state changes.
     let onPressChanged: (Bool) -> Void
+    /// Internal state tracking whether the button is pressed.
     @State private var isPressed = false
 
+    /// Renders the button and handles press gestures.
     var body: some View {
         Image(systemName: systemName)
             .font(.system(size: 64, weight: .bold))
@@ -248,34 +278,44 @@ private struct HoldButton: View {
 #endif
 
 #if os(macOS)
+/// Custom SKView subclass that forwards mouse/keyboard events to the scene.
 private final class GameView: SKView {
+    /// Ensures the view can accept key events.
     override var acceptsFirstResponder: Bool { true }
 
+    /// Claims first-responder status when attached to a window.
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         window?.makeFirstResponder(self)
     }
 
+    /// Forwards mouse clicks to the scene.
     override func mouseDown(with event: NSEvent) {
         scene?.mouseDown(with: event)
     }
 
+    /// Forwards mouse drags to the scene.
     override func mouseDragged(with event: NSEvent) {
         scene?.mouseDragged(with: event)
     }
 
+    /// Forwards key-down events to the scene.
     override func keyDown(with event: NSEvent) {
         scene?.keyDown(with: event)
     }
 
+    /// Forwards key-up events to the scene.
     override func keyUp(with event: NSEvent) {
         scene?.keyUp(with: event)
     }
 }
 
+/// SwiftUI wrapper for the macOS SKView host.
 private struct MacGameView: NSViewRepresentable {
+    /// The SpriteKit scene to present.
     let scene: TubeScene
 
+    /// Creates the SKView and presents the scene.
     func makeNSView(context: Context) -> GameView {
         let view = GameView()
         view.ignoresSiblingOrder = true
@@ -288,6 +328,7 @@ private struct MacGameView: NSViewRepresentable {
         return view
     }
 
+    /// Keeps the presented scene in sync with SwiftUI updates.
     func updateNSView(_ nsView: GameView, context: Context) {
         if nsView.scene !== scene {
             nsView.presentScene(scene)
