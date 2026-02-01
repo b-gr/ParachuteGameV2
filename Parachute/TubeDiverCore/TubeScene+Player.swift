@@ -653,6 +653,11 @@ extension TubeScene {
             let axis = abs(tiltAxis) < deadzone ? 0 : tiltAxis
             let maxSpeed: CGFloat = 520
             player.physicsBody?.velocity = CGVector(dx: axis * maxSpeed, dy: 0)
+        case .joystick:
+            let deadzone: CGFloat = 0.06
+            let axis = abs(joystickAxis) < deadzone ? 0 : joystickAxis
+            let maxSpeed: CGFloat = 520
+            player.physicsBody?.velocity = CGVector(dx: axis * maxSpeed, dy: 0)
         }
     }
 
@@ -662,7 +667,7 @@ extension TubeScene {
         switch inputMode {
         case .pointer:
             allowOffscreen = config.playerRadius * 0.5
-        case .keyboard, .tilt:
+        case .keyboard, .tilt, .joystick:
             allowOffscreen = config.playerRadius
         }
 
@@ -676,7 +681,7 @@ extension TubeScene {
             player.position.x = frame.minX - config.playerRadius
         }
         #else
-        if inputMode == .keyboard || inputMode == .tilt {
+        if inputMode == .keyboard || inputMode == .tilt || inputMode == .joystick {
             if player.position.x < frame.minX - config.playerRadius {
                 player.position.x = frame.maxX + config.playerRadius
             } else if player.position.x > frame.maxX + config.playerRadius {

@@ -11,6 +11,7 @@ import SwiftUI
 #if os(iOS)
 import Combine
 import CoreMotion
+import UIKit
 #endif
 
 #if os(macOS)
@@ -41,6 +42,17 @@ struct ContentView: View {
         let scene = TubeScene(size: gameplaySize)
         scene.scaleMode = .aspectFit
         _scene = State(initialValue: scene)
+#if os(iOS)
+        let normalAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.white
+        ]
+        let selectedAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.black
+        ]
+        UISegmentedControl.appearance().setTitleTextAttributes(normalAttributes, for: .normal)
+        UISegmentedControl.appearance().setTitleTextAttributes(selectedAttributes, for: .selected)
+        UISegmentedControl.appearance().selectedSegmentTintColor = .white
+#endif
     }
 
     /// Renders the game view plus any platform-specific overlays.
@@ -68,7 +80,7 @@ struct ContentView: View {
 #endif
         }
 #if os(iOS)
-        .onChange(of: controlMode) { newValue in
+        .onChange(of: controlMode) { _, newValue in
             configureControls(for: newValue)
         }
         .onReceive(uiTimer) { _ in
@@ -99,9 +111,15 @@ struct ContentView: View {
         case .buttons:
             stopTiltUpdates()
             scene.updateTiltAxis(0)
+            scene.updateJoystickAxis(0)
             scene.setButtonInput(left: false, right: false)
         case .tilt:
             startTiltUpdates()
+            scene.updateJoystickAxis(0)
+        case .joystick:
+            stopTiltUpdates()
+            scene.updateTiltAxis(0)
+            scene.setButtonInput(left: false, right: false)
         }
     }
 
@@ -144,7 +162,7 @@ private struct NameEntryOverlay: View {
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
                 .textFieldStyle(.roundedBorder)
-                .onChange(of: nameEntry) { newValue in
+                .onChange(of: nameEntry) { _, newValue in
                     scene.updateNameBuffer(newValue)
                     let filtered = scene.currentNameBuffer()
                     if filtered != newValue {
@@ -186,14 +204,16 @@ private struct ControlOverlay: View {
     var body: some View {
         let _ = uiTick
         VStack {
-            if scene.isReady || scene.isShowingScores {
+            if scene.isReady {
                 Picker("Controls", selection: $controlMode) {
                     Text("Buttons").tag(TubeScene.ControlMode.buttons)
+                    Text("Joystick").tag(TubeScene.ControlMode.joystick)
                     Text("Tilt").tag(TubeScene.ControlMode.tilt)
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 24)
-                .padding(.top, 16)
+                .padding(.top, 4)
+                .offset(y: -10)
             }
 
             Spacer()
@@ -223,13 +243,21 @@ private struct ControlOverlay: View {
                     }
                 }
                 .padding(.bottom, 32)
+            } else if controlMode == .joystick && !scene.isReady && !scene.isShowingScores {
+                JoystickControl { axis in
+                    scene.updateJoystickAxis(axis)
+                }
+                .padding(.bottom, 24)
             }
         }
-        .onChange(of: controlMode) { newValue in
+        .onChange(of: controlMode) { _, newValue in
             if newValue == .tilt {
                 leftPressed = false
                 rightPressed = false
                 applyButtons()
+                scene.updateJoystickAxis(0)
+            } else if newValue != .joystick {
+                scene.updateJoystickAxis(0)
             }
         }
     }
@@ -273,6 +301,42 @@ private struct HoldButton: View {
                         }
                     }
             )
+    }
+}
+
+/// Analog left-right joystick control for touch input.
+private struct JoystickControl: View {
+    /// Called with the normalized horizontal axis (-1...1).
+    let onAxisChanged: (CGFloat) -> Void
+    @State private var knobOffset: CGSize = .zero
+
+    /// Renders the joystick base and draggable knob.
+    var body: some View {
+        let radius: CGFloat = 44
+        let knobRadius: CGFloat = 20
+        ZStack {
+            Circle()
+                .fill(.black.opacity(0.35))
+                .frame(width: radius * 2, height: radius * 2)
+            Circle()
+                .fill(.white.opacity(0.9))
+                .frame(width: knobRadius * 2, height: knobRadius * 2)
+                .offset(knobOffset)
+        }
+        .contentShape(Circle())
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { value in
+                    let dx = max(-radius, min(radius, value.translation.width))
+                    let dy = max(-radius, min(radius, value.translation.height))
+                    knobOffset = CGSize(width: dx, height: dy)
+                    onAxisChanged(dx / radius)
+                }
+                .onEnded { _ in
+                    knobOffset = .zero
+                    onAxisChanged(0)
+                }
+        )
     }
 }
 #endif

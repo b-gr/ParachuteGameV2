@@ -78,4 +78,19 @@ extension TubeScene {
 
         scoreLabel.text = "Score: \(score)  Time: \(timeText)s  Coins: \(coinsThisRun)" + buffText
     }
+
+    /// Shows or hides HUD elements based on the current run state.
+    func updateHUDVisibility() {
+        let selectorVisible = runState == .ready
+        let showScoreBar = runState == .playing || selectorVisible
+        let showStatusText = runState == .enteringName || runState == .showingScores
+
+        hudBar.isHidden = !showScoreBar
+        hudBar.alpha = showScoreBar ? 1 : 0
+        scoreLabel.alpha = showScoreBar ? 1 : 0
+        if selectorVisible {
+            scoreLabel.text = ""
+        }
+        statusLabel.alpha = showStatusText ? 1 : 0
+    }
 }

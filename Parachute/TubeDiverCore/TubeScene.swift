@@ -44,6 +44,7 @@ public final class TubeScene: SKScene {
     public enum ControlMode {
         case buttons
         case tilt
+        case joystick
     }
 
     /// Input modes used internally by the scene.
@@ -51,6 +52,7 @@ public final class TubeScene: SKScene {
         case pointer
         case keyboard
         case tilt
+        case joystick
     }
 
     /// High-level state machine for a run.
@@ -124,6 +126,8 @@ public final class TubeScene: SKScene {
     var rightKeyDown = false
     /// Tilt axis input from device motion.
     var tiltAxis: CGFloat = 0
+    /// Joystick axis input from the on-screen control.
+    var joystickAxis: CGFloat = 0
 
     let shieldBubble = SKShapeNode()
     let shieldRim = SKShapeNode()
@@ -241,6 +245,7 @@ public final class TubeScene: SKScene {
         leftKeyDown = false
         rightKeyDown = false
         tiltAxis = 0
+        joystickAxis = 0
 
         world.removeAllChildren()
         world.removeAllActions()
@@ -282,6 +287,7 @@ public final class TubeScene: SKScene {
         }
 
         updateHudScale()
+        updateHUDVisibility()
     }
 
     /// Performs background animation while waiting to start.
@@ -338,10 +344,17 @@ public final class TubeScene: SKScene {
             leftKeyDown = false
             rightKeyDown = false
             tiltAxis = 0
+            joystickAxis = 0
         case .tilt:
             inputMode = .tilt
             leftKeyDown = false
             rightKeyDown = false
+            joystickAxis = 0
+        case .joystick:
+            inputMode = .joystick
+            leftKeyDown = false
+            rightKeyDown = false
+            tiltAxis = 0
         }
     }
 
@@ -356,6 +369,12 @@ public final class TubeScene: SKScene {
     public func updateTiltAxis(_ axis: CGFloat) {
         inputMode = .tilt
         tiltAxis = max(-1, min(1, axis))
+    }
+
+    /// Updates the current joystick axis used for movement.
+    public func updateJoystickAxis(_ axis: CGFloat) {
+        inputMode = .joystick
+        joystickAxis = max(-1, min(1, axis))
     }
 
     /// Handles the primary action (start or restart) based on run state.
